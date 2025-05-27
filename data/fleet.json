@@ -1,0 +1,20 @@
+[
+  {
+    "id": "sclass",
+    "model": "Mercedes-Benz S\u2011Class",
+    "class": "Premium",
+    "image": "/sclass.jpg"
+  },
+  {
+    "id": "7series",
+    "model": "BMW 7 Series",
+    "class": "Premium",
+    "image": "/7series.jpg"
+  },
+  {
+    "id": "eclass",
+    "model": "Mercedes-Benz E\u2011Class",
+    "class": "Business",
+    "image": "/eclass.jpg"
+  }
+]
