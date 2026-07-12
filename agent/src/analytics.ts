@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { ANALYTICS_DIR, env } from './config.js'
 import { listPublished } from './queue.js'
+import { loadLife, recordFollowers } from './life.js'
 
 type MediaStats = {
   postId: string
@@ -26,11 +27,45 @@ async function igInsights(mediaId: string): Promise<Partial<MediaStats>> {
   return { reach: out.reach, likes: out.likes, comments: out.comments, saved: out.saved, shares: out.shares }
 }
 
+/** Число подписчиков по платформам — для счётчика цели Лео */
+async function fetchFollowers(): Promise<Record<string, number>> {
+  const counts: Record<string, number> = {}
+
+  if (env.igToken && env.igUserId) {
+    try {
+      const res = await fetch(
+        `${GRAPH}/${env.igUserId}?fields=followers_count&access_token=${env.igToken}`,
+      )
+      const json = (await res.json()) as { followers_count?: number; error?: { message: string } }
+      if (json.followers_count !== undefined) counts.instagram = json.followers_count
+    } catch { /* платформа недоступна — пропускаем */ }
+  }
+
+  if (env.telegramToken && env.telegramChat) {
+    try {
+      const res = await fetch(
+        `https://api.telegram.org/bot${env.telegramToken}/getChatMemberCount?chat_id=${encodeURIComponent(env.telegramChat)}`,
+      )
+      const json = (await res.json()) as { ok: boolean; result?: number }
+      if (json.ok && json.result !== undefined) counts.telegram = json.result
+    } catch { /* платформа недоступна — пропускаем */ }
+  }
+
+  return counts
+}
+
 /** Собирает статистику по опубликованным постам и пишет сводку для генератора */
 export async function collectAnalytics(): Promise<string> {
   mkdirSync(ANALYTICS_DIR, { recursive: true })
   const published = listPublished()
   const stats: MediaStats[] = []
+
+  // счётчик цели: подписчики + новые рубежи попадают в память Лео
+  const followers = await fetchFollowers()
+  if (Object.keys(followers).length > 0) {
+    const milestones = recordFollowers(loadLife(), followers)
+    for (const m of milestones) console.log(`  🎉 Взят рубеж: ${m} подписчиков`)
+  }
 
   for (const post of published) {
     const igId = post.publishedTo['instagram']
@@ -53,6 +88,10 @@ export async function collectAnalytics(): Promise<string> {
 
   const lines = [
     `# Сводка по ${stats.length} публикациям (обновлено ${new Date().toISOString().slice(0, 10)})`,
+    ``,
+    Object.keys(followers).length > 0
+      ? `Подписчики: ${Object.entries(followers).map(([p, n]) => `${p} ${n}`).join(', ')}`
+      : `Подписчики: данные пока не собраны`,
     ``,
     `Топ тем по вовлечённости (сохранения x5, репосты x4, комментарии x3, лайки x1):`,
     ...ranked.slice(0, 10).map(

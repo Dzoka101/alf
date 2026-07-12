@@ -1,9 +1,10 @@
 import { loadBrand, env } from './config.js'
 import { listQueue, listPublished, savePost, markPublished } from './queue.js'
-import { samplePosts } from './sample-content.js'
+import { samplePosts, sampleStateUpdate } from './sample-content.js'
 import { renderPost } from './render.js'
 import { publishEverywhere } from './publish/index.js'
 import { collectAnalytics } from './analytics.js'
+import { loadLife, applyUpdate, type StateUpdate } from './life.js'
 
 const args = process.argv.slice(2)
 const command = args[0] ?? 'status'
@@ -20,20 +21,26 @@ async function cmdPlan() {
   const offline = flag('offline') || !env.anthropicKey
 
   let posts
+  let stateUpdate: StateUpdate
   if (offline) {
     console.log(`Генерирую ${count} постов из офлайн-набора (ANTHROPIC_API_KEY не задан или --offline)...`)
     posts = samplePosts(count)
+    stateUpdate = sampleStateUpdate()
   } else {
     console.log(`Генерирую ${count} постов через Claude...`)
     const { generatePosts } = await import('./claude.js')
-    posts = await generatePosts(brand, count)
+    const result = await generatePosts(brand, count)
+    posts = result.posts
+    stateUpdate = result.stateUpdate
   }
 
   for (const p of posts) {
     savePost(p)
-    console.log(`  + [${p.id}] ${p.topic}`)
+    console.log(`  + [${p.id}] (${p.kind ?? 'post'}) ${p.topic}`)
   }
-  console.log(`Готово: ${posts.length} постов в очереди.`)
+
+  const life = applyUpdate(loadLife(), stateUpdate)
+  console.log(`Готово: ${posts.length} постов в очереди. Глава жизни: ${life.chapter}, настроение: ${life.mood}`)
 }
 
 async function cmdRender() {
@@ -93,7 +100,12 @@ async function cmdAnalyze() {
 function cmdStatus() {
   const queue = listQueue()
   const published = listPublished()
-  console.log(`Бренд: ${brand.name} (${brand.handle})`)
+  const life = loadLife()
+  const followers = Object.entries(life.followers).map(([p, n]) => `${p}: ${n}`).join(', ') || '0'
+  console.log(`Персонаж: ${brand.name} (${brand.handle}) — глава ${life.chapter}`)
+  console.log(`Настроение: ${life.mood}`)
+  console.log(`Цель: ${life.goal.target} подписчиков. Сейчас: ${followers}`)
+  console.log(`Арки: ${life.arcs.filter((a) => a.status === 'active').map((a) => a.name).join(' · ')}`)
   console.log(`Очередь: ${queue.length} (черновиков ${queue.filter((p) => p.status === 'draft').length}, готовых ${queue.filter((p) => p.status === 'rendered').length})`)
   console.log(`Опубликовано: ${published.length}`)
   for (const p of queue) console.log(`  [${p.status}] ${p.id} — ${p.topic}`)

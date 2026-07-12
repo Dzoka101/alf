@@ -22,7 +22,13 @@ export type Post = {
   createdAt: string
   status: 'draft' | 'rendered' | 'published'
   format: 'carousel' | 'single'
+  /** Рубрика: жизнь Лео / польза / отчёт о пути к цели */
+  kind?: 'life' | 'useful' | 'goal'
   topic: string
+  /** Запись в дневнике Лео: что происходит в его жизни в этом посте (для непрерывности сюжета) */
+  diaryEntry?: string
+  /** Бриф сцены для будущей генерации «фото из жизни» (подключается отдельно) */
+  imageBrief?: string
   /** Подпись к посту: хук, текст, CTA, хэштеги */
   caption: string
   slides: Slide[]
