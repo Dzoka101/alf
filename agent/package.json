@@ -1,0 +1,25 @@
+{
+  "name": "alf-ai-blogger",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "AI-агент-блогер: генерация контента (Claude), рендер каруселей, автопостинг в Instagram/Telegram/VK, аналитика",
+  "scripts": {
+    "plan": "tsx src/cli.ts plan",
+    "render": "tsx src/cli.ts render",
+    "publish": "tsx src/cli.ts publish",
+    "analyze": "tsx src/cli.ts analyze",
+    "run": "tsx src/cli.ts run",
+    "status": "tsx src/cli.ts status"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.111.0",
+    "playwright": "^1.57.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.4.2"
+  }
+}

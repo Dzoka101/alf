@@ -1,0 +1,79 @@
+name: AI Blogger
+
+on:
+  schedule:
+    # Ежедневная публикация в 07:00 UTC (10:00 МСК)
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+    inputs:
+      command:
+        description: 'Команда агента'
+        required: false
+        default: 'run'
+        type: choice
+        options: [run, plan, render, publish, analyze, status]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ai-blogger
+  cancel-in-progress: false
+
+jobs:
+  blogger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: agent/package-lock.json
+
+      - name: Install dependencies
+        working-directory: agent
+        run: npm ci
+
+      - name: Install Chromium
+        working-directory: agent
+        run: npx playwright install --with-deps chromium
+
+      # Медиа коммитятся ДО публикации: Instagram скачивает картинки
+      # по raw.githubusercontent.com, значит файлы уже должны быть в репозитории.
+      - name: Generate + render
+        working-directory: agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          QUEUE_COUNT=$(ls content/queue/*.json 2>/dev/null | wc -l)
+          if [ "$QUEUE_COUNT" -eq 0 ]; then npx tsx src/cli.ts plan; fi
+          npx tsx src/cli.ts render
+
+      - name: Commit rendered media
+        run: |
+          git config user.name "alf-ai-blogger"
+          git config user.email "actions@github.com"
+          git add agent/content
+          git diff --cached --quiet || git commit -m "content: рендер очереди постов [skip ci]"
+          git push
+
+      - name: Publish + analyze
+        working-directory: agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          MEDIA_BASE_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          VK_ACCESS_TOKEN: ${{ secrets.VK_ACCESS_TOKEN }}
+          VK_GROUP_ID: ${{ secrets.VK_GROUP_ID }}
+        run: npx tsx src/cli.ts ${{ inputs.command || 'publish' }}
+
+      - name: Commit publish state
+        run: |
+          git add agent/content
+          git diff --cached --quiet || git commit -m "content: публикация и аналитика [skip ci]"
+          git push
