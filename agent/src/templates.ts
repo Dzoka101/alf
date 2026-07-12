@@ -7,7 +7,7 @@ const baseCss = (v: BrandConfig['visual']) => `
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 1080px; height: 1350px; }
   body {
-    font-family: Georgia, 'Times New Roman', serif;
+    font-family: ${v.headingFont ?? "Georgia, 'Times New Roman', serif"};
     background: ${v.bg};
     color: ${v.text};
     display: flex;

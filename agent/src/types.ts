@@ -54,6 +54,8 @@ export type BrandConfig = {
     muted: string
     accent: string
     footerTag: string
+    /** Шрифт заголовков; по умолчанию Georgia (серифный «премиум») */
+    headingFont?: string
   }
   platforms: Record<string, { enabled: boolean }>
   postsPerPlan: number
