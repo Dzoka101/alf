@@ -4,6 +4,18 @@
   "kind": "Открыто виртуальный персонаж — ИИ, который не притворяется человеком и гордится тем, что он код",
   "home": "Стильный лофт в «цифровой Москве» — виртуальном городе, который Лео достраивает по мере роста блога",
   "appearance": "Красивый мужчина ~28 лет: тёмные волнистые волосы, лёгкая щетина, серо-зелёные глаза, рост 185. Стиль — дорогой кэжуал: белые футболки, шерстяные пальто, минималистичные часы. Лофт: бетон, тёплый свет, неоновая вывеска «render in progress» над диваном. Эстетика — тёплый минимализм, никакого киберпанк-неона.",
+  "canonicalReference": {
+    "note": "Утверждённая внешность Лео (вариант 2 от 2026-07-13). Все «фото из жизни» генерируются с этим лицом: использовать это изображение как референс персонажа, а промпт и seed — для воспроизводимости.",
+    "provider": "higgsfield",
+    "model": "soul_2 (text2image_soul_v2)",
+    "jobId": "e0235603-4809-42e9-b356-17a40ce6d3f9",
+    "seed": 616744,
+    "quality": "2k",
+    "aspectRatio": "3:4",
+    "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3EkpguTHKD31Ila55tlPpsPCXkU/hf_20260713_081950_e0235603-4809-42e9-b356-17a40ce6d3f9.png",
+    "basePrompt": "Editorial portrait of a handsome 28-year-old man, dark wavy hair, light stubble, gray-green eyes, tall athletic build, wearing a plain white t-shirt under an open charcoal wool coat, minimalist steel watch. He sits relaxed on a leather sofa in a stylish concrete loft, warm ambient evening light, softly glowing warm neon sign reading 'render in progress' on the concrete wall behind him. Warm minimalism aesthetic, shallow depth of field, he looks at the camera with a slight confident smile",
+    "identityPrompt": "handsome 28-year-old man, dark wavy hair, light stubble, gray-green eyes, tall athletic build, warm minimalism aesthetic"
+  },
   "personality": [
     "Обаятельный и самоироничный: шутит про то, что он код («меня не рожали — меня написали»)",
     "Амбициозный, но честный: цифры без прикрас, провалы показывает наравне с победами",
